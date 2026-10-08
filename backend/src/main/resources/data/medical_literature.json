@@ -1,0 +1,110 @@
+[
+  {
+    "title": "High-Sensitivity Cardiac Troponin in Suspected Acute Coronary Syndrome: Evidence and Clinical Decision Pathways",
+    "authors": "T. Reichlin, C. Mueller, N. L. Mills et al.",
+    "publicationYear": 2023,
+    "journal": "New England Journal of Cardiology & Acute Care",
+    "topic": "Cardiovascular Disease",
+    "sourceType": "Demo Literature Record",
+    "abstractText": "High-sensitivity cardiac troponin (hs-cTn) assays enable rapid rule-out and rule-in algorithms for acute myocardial infarction in patients presenting with acute chest discomfort. Serial sampling at 0 and 1-3 hours provides high negative predictive value (>99%) when delta thresholds remain stable. Clinical interpretation must account for non-ischemic causes of troponin elevation, including chronic kidney disease, severe hypertension, myocarditis, and tachyarrhythmias. Accelerated diagnostic protocols combined with clinical risk scoring optimize emergency stratification."
+  },
+  {
+    "title": "Contemporary Management of Chest Discomfort in Emergency Settings: 2023 Guideline Review",
+    "authors": "M. Gulati, P. D. Levy, D. Mukherjee et al.",
+    "publicationYear": 2023,
+    "journal": "Journal of Clinical Emergency Medicine & Cardiology",
+    "topic": "Cardiovascular Disease",
+    "sourceType": "Demo Literature Record",
+    "abstractText": "Evaluation of acute chest discomfort requires distinguishing life-threatening etiologies (acute coronary syndromes, aortic dissection, pulmonary embolism) from non-emergent causes. Early 12-lead electrocardiography within 10 minutes and high-sensitivity troponin assays form the diagnostic cornerstone. Patients with ischemic risk factors, persistent pain, and dynamic cardiac biomarkers warrant prompt cardiology consultation and structured hemodynamic monitoring."
+  },
+  {
+    "title": "Guideline-Directed Medical Therapy for Resistant Hypertension: Multi-Drug Regimens and Outcomes",
+    "authors": "R. M. Carey, D. A. Calhoun, G. L. Bakris et al.",
+    "publicationYear": 2022,
+    "journal": "Circulation & Hypertension Insights",
+    "topic": "Hypertension",
+    "sourceType": "Demo Literature Record",
+    "abstractText": "Resistant hypertension is defined as blood pressure that remains above target despite concurrent use of three antihypertensive agents of different classes, one of which should be a diuretic. The PATHWAY-2 trial demonstrated that mineralocorticoid receptor antagonists (spironolactone) are the most effective add-on therapy. Careful assessment of medication adherence, secondary causes (such as primary aldosteronism and obstructive sleep apnea), and sodium intake is essential before intensifying regimens."
+  },
+  {
+    "title": "Combination Pharmacotherapy in Primary and Uncontrolled Hypertension: Comparative Clinical Trial Synthesis",
+    "authors": "B. Williams, G. Mancia, W. Spiering et al.",
+    "publicationYear": 2023,
+    "journal": "European Heart Journal - Cardiovascular Pharmacotherapy",
+    "topic": "Hypertension",
+    "sourceType": "Demo Literature Record",
+    "abstractText": "Initial single-pill combination therapy involving an ACE inhibitor or ARB combined with a calcium channel blocker or thiazide-like diuretic significantly accelerates blood pressure normalization and enhances long-term adherence compared to sequential monotherapy. Target systolic levels below 130 mmHg are associated with reduced major adverse cardiovascular events in high-risk demographic cohorts."
+  },
+  {
+    "title": "Standards of Care in Type 2 Diabetes: Cardiorenal Protection with SGLT2 Inhibitors and GLP-1 Receptor Agonists",
+    "authors": "American Diabetes Association Professional Practice Committee",
+    "publicationYear": 2024,
+    "journal": "Diabetes Care & Clinical Endocrinology",
+    "topic": "Diabetes",
+    "sourceType": "Demo Literature Record",
+    "abstractText": "In adults with type 2 diabetes and established atherosclerotic cardiovascular disease, heart failure, or chronic kidney disease, SGLT2 inhibitors and GLP-1 receptor agonists with proven cardiovascular benefit are strongly recommended irrespective of baseline HbA1c. These agents demonstrate significant reductions in cardiovascular mortality, hospitalizations for heart failure, and renal disease progression. Comprehensive glycemic management requires individualized glycemic targets, continuous glucose monitoring where indicated, and lifestyle modification."
+  },
+  {
+    "title": "Microvascular and Macrovascular Complications in Long-Standing Poorly Controlled Diabetes",
+    "authors": "E. Ferrannini, M. A. Nauck, S. E. Kahn et al.",
+    "publicationYear": 2023,
+    "journal": "The Lancet Diabetes & Endocrinology",
+    "topic": "Diabetes",
+    "sourceType": "Demo Literature Record",
+    "abstractText": "Persistent hyperglycemia compounded by comorbid hypertension dramatically accelerates endothelial dysfunction, nephropathy, retinopathy, and peripheral neuropathy. Glycemic variability correlates with oxidative stress markers and autonomic neuropathic symptoms. Multifactorial intervention addressing glycemic targets (HbA1c < 7.0% for most adults), blood pressure (< 130/80 mmHg), and intensive lipid lowering provides compounding risk reductions."
+  },
+  {
+    "title": "Global Initiative for Asthma (GINA) 2023 Update: Inhaled Corticosteroid-Formoterol Maintenance and Reliever Therapy",
+    "authors": "H. K. Reddel, L. B. Bacharier, E. D. Bateman et al.",
+    "publicationYear": 2023,
+    "journal": "American Journal of Respiratory and Critical Care Medicine",
+    "topic": "Asthma",
+    "sourceType": "Demo Literature Record",
+    "abstractText": "The GINA management strategy recommends low-dose inhaled corticosteroid (ICS)-formoterol as the preferred reliever therapy across Track 1 for adults and adolescents, replacing short-acting beta2-agonists (SABA) monotherapy. SABA-only treatment without concurrent anti-inflammatory therapy increases risks of severe exacerbations and asthma-related mortality. Objective assessment of airflow limitation (spirometry/PEF) and evaluation of inhaler technique are mandatory components of disease control reviews."
+  },
+  {
+    "title": "Management of Acute Asthma Exacerbations in Urgent and Ambulatory Care",
+    "authors": "J. M. FitzGerald, N. A. Hanania, P. G. Gibson et al.",
+    "publicationYear": 2022,
+    "journal": "Thorax & Respiratory Medicine International",
+    "topic": "Asthma",
+    "sourceType": "Demo Literature Record",
+    "abstractText": "Acute asthma exacerbations are characterized by progressive worsening of wheeze, breathlessness, cough, and chest tightness accompanied by reduced expiratory airflow. Initial management involves repetitive administration of rapid-acting inhaled bronchodilators, early systemic corticosteroids to reduce airway edema, and controlled oxygen therapy targeting saturation 93-95%. Objective assessment using peak expiratory flow (PEF) and pulse oximetry guides disposition."
+  },
+  {
+    "title": "Diagnosis and Treatment of Community-Acquired Pneumonia: ATS/IDSA Consensus Guideline Highlights",
+    "authors": "J. P. Metlay, G. W. Waterer, A. C. Long et al.",
+    "publicationYear": 2022,
+    "journal": "Clinical Infectious Diseases & Pulmonology",
+    "topic": "Pneumonia",
+    "sourceType": "Demo Literature Record",
+    "abstractText": "Community-acquired pneumonia (CAP) diagnosis requires clinical signs of lower respiratory tract infection confirmed by radiographic infiltrates. Empiric outpatient antimicrobial therapy in patients without comorbidities includes amoxicillin or doxycycline; patients with chronic comorbidities warrant combination beta-lactam plus macrolide or respiratory fluoroquinolone. Clinical severity risk stratification using CURB-65 or Pneumonia Severity Index (PSI) determines outpatient versus inpatient triage."
+  },
+  {
+    "title": "Guideline-Directed Medical Therapy in Heart Failure with Reduced Ejection Fraction: The 4-Pillar Foundation",
+    "authors": "P. A. Heidenreich, B. Bozkurt, D. Aguilar et al.",
+    "publicationYear": 2023,
+    "journal": "Journal of the American College of Cardiology",
+    "topic": "Cardiovascular Disease",
+    "sourceType": "Demo Literature Record",
+    "abstractText": "Contemporary management of heart failure with reduced ejection fraction (HFrEF) mandates rapid titration of guideline-directed medical therapy (GDMT) comprising four pharmacological pillars: ARNI/ACEi/ARB, evidence-based beta-blockers, mineralocorticoid receptor antagonists (MRA), and SGLT2 inhibitors. Early initiation within hospital or urgent care settings improves all-cause survival and reduces readmissions within 30 days."
+  },
+  {
+    "title": "Cardiorenal Syndrome and Chronic Kidney Disease in Patients with Metabolic Syndrome",
+    "authors": "G. L. Bakris, R. Agarwal, S. D. Anker et al.",
+    "publicationYear": 2023,
+    "journal": "Kidney International & Metabolic Research",
+    "topic": "Chronic Kidney Disease",
+    "sourceType": "Demo Literature Record",
+    "abstractText": "Cardiorenal syndrome reflects bidirectional interplay where acute or chronic dysfunction of the heart or kidneys induces acute or chronic dysfunction of the other. Diabetic kidney disease and hypertensive nephrosclerosis represent leading contributors to end-stage renal disease. Nonsteroidal mineralocorticoid receptor antagonists (finerenone) and SGLT2 inhibitors attenuate albuminuria and decrease cardiovascular and renal event hazards."
+  },
+  {
+    "title": "Clinical Stratification of Acute Pulmonary Embolism and D-Dimer Diagnostic Utility",
+    "authors": "S. V. Konstantinides, G. Meyer, C. Becattini et al.",
+    "publicationYear": 2023,
+    "journal": "European Respiratory Journal & Vascular Health",
+    "topic": "Pulmonary Embolism",
+    "sourceType": "Demo Literature Record",
+    "abstractText": "In patients presenting with sudden dyspnea, pleuritic chest pain, or tachycardia, clinical probability assessment using the Wells or Geneva score guides diagnostic testing. Age-adjusted D-dimer cutoff values safely rule out pulmonary embolism in low-to-intermediate probability patients without need for computed tomography pulmonary angiography (CTPA). Hemodynamically unstable presentations require prompt reperfusion therapy."
+  }
+]
