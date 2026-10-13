@@ -1,27 +1,24 @@
 import React, { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { DashboardPage } from './pages/DashboardPage';
 import { NewCasePage } from './pages/NewCasePage';
 import { CaseResultsPage } from './pages/CaseResultsPage';
 import { LiteraturePage } from './pages/LiteraturePage';
+import { NotFoundPage } from './pages/NotFoundPage';
 import { api } from './services/api';
 import type { AnalysisResult, ClinicalCase, HealthStatus, LiteratureRecord } from './types/case';
 import { SYNTHETIC_DEMO_CASES } from './data/syntheticDemoCases';
 
-export const App: React.FC = () => {
-  const [currentTab, setCurrentTab] = useState<'dashboard' | 'new-case' | 'results' | 'literature'>('dashboard');
+const AppContent: React.FC = () => {
+  const navigate = useNavigate();
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [cases, setCases] = useState<ClinicalCase[]>([]);
   const [literature, setLiterature] = useState<LiteratureRecord[]>([]);
   const [currentAnalysis, setCurrentAnalysis] = useState<AnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Initial load
-  useEffect(() => {
-    loadInitialData();
-  }, []);
 
   const loadInitialData = async () => {
     try {
@@ -45,6 +42,11 @@ export const App: React.FC = () => {
     }
   };
 
+  // Initial load
+  useEffect(() => {
+    loadInitialData();
+  }, []);
+
   const handleCreateAndAnalyzeCase = async (caseData: Omit<ClinicalCase, 'id' | 'createdAt'>) => {
     setIsLoading(true);
     setError(null);
@@ -62,7 +64,7 @@ export const App: React.FC = () => {
       // 2. Run RAG Analysis
       const analysisResult = await api.analyzeCase(created.id);
       setCurrentAnalysis(analysisResult);
-      setCurrentTab('results');
+      navigate(`/analysis/${created.id}`);
     } catch (err: any) {
       console.error('Case analysis error:', err);
       setError(err.message || 'Unable to complete the analysis. Please check the backend connection and try again.');
@@ -74,11 +76,10 @@ export const App: React.FC = () => {
   const handleSelectCaseToAnalyze = async (caseId: number) => {
     setIsLoading(true);
     setError(null);
-    setCurrentTab('new-case');
     try {
       const analysisResult = await api.analyzeCase(caseId);
       setCurrentAnalysis(analysisResult);
-      setCurrentTab('results');
+      navigate(`/analysis/${caseId}`);
     } catch (err: any) {
       console.error('Error analyzing existing case:', err);
       setError(err.message || 'Failed to analyze case. Please try again.');
@@ -112,61 +113,77 @@ export const App: React.FC = () => {
         health={health}
         onNavigateNewCase={() => {
           setError(null);
-          setCurrentTab('new-case');
+          navigate('/case/new');
         }}
       />
 
       <div className="app-main-body">
         <Sidebar
-          currentTab={currentTab}
-          onSelectTab={(tab) => {
-            setError(null);
-            setCurrentTab(tab);
-          }}
           caseCount={cases.length}
           literatureCount={literature.length}
         />
 
         <main className="app-content-area">
-          {currentTab === 'dashboard' && (
-            <DashboardPage
-              health={health}
-              cases={cases}
-              literature={literature}
-              onNavigateNewCase={() => setCurrentTab('new-case')}
-              onNavigateLiterature={() => setCurrentTab('literature')}
-              onSelectCaseToAnalyze={handleSelectCaseToAnalyze}
-              onQuickLoadDemo={handleQuickLoadDemo}
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <DashboardPage
+                  health={health}
+                  cases={cases}
+                  literature={literature}
+                  onNavigateNewCase={() => navigate('/case/new')}
+                  onNavigateLiterature={() => navigate('/literature')}
+                  onSelectCaseToAnalyze={handleSelectCaseToAnalyze}
+                  onQuickLoadDemo={handleQuickLoadDemo}
+                  onPrefillDemo={() => navigate('/case/new')}
+                />
+              }
             />
-          )}
-
-          {currentTab === 'new-case' && (
-            <NewCasePage
-              onSubmitCase={handleCreateAndAnalyzeCase}
-              isLoading={isLoading}
-              error={error}
-              onClearError={() => setError(null)}
+            <Route
+              path="/case/new"
+              element={
+                <NewCasePage
+                  onSubmitCase={handleCreateAndAnalyzeCase}
+                  isLoading={isLoading}
+                  error={error}
+                  onClearError={() => setError(null)}
+                />
+              }
             />
-          )}
-
-          {currentTab === 'results' && currentAnalysis && (
-            <CaseResultsPage
-              analysis={currentAnalysis}
-              onBackToNewCase={() => setCurrentTab('new-case')}
-              onBackToDashboard={() => setCurrentTab('dashboard')}
+            <Route
+              path="/analysis/:id"
+              element={
+                <CaseResultsPage
+                  analysis={currentAnalysis}
+                  onBackToNewCase={() => navigate('/case/new')}
+                  onBackToDashboard={() => navigate('/')}
+                />
+              }
             />
-          )}
-
-          {currentTab === 'literature' && (
-            <LiteraturePage
-              literature={literature}
-              onSearch={handleSearchLiterature}
-              isLoading={isLoading}
+            <Route
+              path="/literature"
+              element={
+                <LiteraturePage
+                  literature={literature}
+                  onSearch={handleSearchLiterature}
+                  isLoading={isLoading}
+                />
+              }
             />
-          )}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
         </main>
       </div>
     </div>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   );
 };
 

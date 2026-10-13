@@ -18,11 +18,13 @@ export const CaseForm: React.FC<CaseFormProps> = ({ onSubmit, isLoading }) => {
   const [labResults, setLabResults] = useState<string>('High-sensitivity Troponin T: 0.082 ng/mL (elevated), ECG: T-wave inversions in V3-V5');
   const [additionalInformation, setAdditionalInformation] = useState<string>('Non-smoker, no prior documented myocardial infarction');
   const [isDemoCase, setIsDemoCase] = useState<boolean>(true);
-  const [errors, setErrors] = useState<{ age?: string; chiefComplaint?: string }>({});
+  const [errors, setErrors] = useState<{ age?: string; chiefComplaint?: string; clinicalContext?: string }>({});
+  const [selectedDemoIndex, setSelectedDemoIndex] = useState<number>(0);
 
   const handleLoadDemo = (index: number) => {
     const demo = SYNTHETIC_DEMO_CASES[index];
     if (demo) {
+      setSelectedDemoIndex(index);
       setAge(demo.data.age);
       setGender(demo.data.gender);
       setChiefComplaint(demo.data.chiefComplaint);
@@ -34,6 +36,11 @@ export const CaseForm: React.FC<CaseFormProps> = ({ onSubmit, isLoading }) => {
       setIsDemoCase(true);
       setErrors({});
     }
+  };
+
+  const handleCycleDemo = () => {
+    const nextIdx = (selectedDemoIndex + 1) % SYNTHETIC_DEMO_CASES.length;
+    handleLoadDemo(nextIdx);
   };
 
   const handleClear = () => {
@@ -52,12 +59,19 @@ export const CaseForm: React.FC<CaseFormProps> = ({ onSubmit, isLoading }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newErrors: { age?: string; chiefComplaint?: string } = {};
+    const newErrors: { age?: string; chiefComplaint?: string; clinicalContext?: string } = {};
     if (age === '' || isNaN(Number(age)) || Number(age) < 0 || Number(age) > 130) {
-      newErrors.age = 'Please enter a valid age (0 - 130)';
+      newErrors.age = 'Please enter a valid age between 0 and 130 years';
     }
-    if (!chiefComplaint.trim()) {
+    const cleanComplaint = chiefComplaint.trim();
+    if (!cleanComplaint) {
       newErrors.chiefComplaint = 'Chief complaint is required';
+    } else if (cleanComplaint.length < 5) {
+      newErrors.chiefComplaint = 'Please enter a more descriptive chief complaint (minimum 5 characters)';
+    }
+
+    if (!symptoms.trim() && !medicalHistory.trim() && !labResults.trim()) {
+      newErrors.clinicalContext = 'Please provide symptoms, medical history, or lab results to provide sufficient clinical context for literature retrieval.';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -69,7 +83,7 @@ export const CaseForm: React.FC<CaseFormProps> = ({ onSubmit, isLoading }) => {
     onSubmit({
       age: Number(age),
       gender,
-      chiefComplaint: chiefComplaint.trim(),
+      chiefComplaint: cleanComplaint,
       symptoms: symptoms.trim() || undefined,
       medicalHistory: medicalHistory.trim() || undefined,
       medications: medications.trim() || undefined,
@@ -149,7 +163,8 @@ export const CaseForm: React.FC<CaseFormProps> = ({ onSubmit, isLoading }) => {
           >
             <option value="Male">Male</option>
             <option value="Female">Female</option>
-            <option value="Other">Other / Non-specified</option>
+            <option value="Prefer not to specify">Prefer not to specify</option>
+            <option value="Other">Other / Non-binary</option>
           </select>
         </div>
 
@@ -237,6 +252,14 @@ export const CaseForm: React.FC<CaseFormProps> = ({ onSubmit, isLoading }) => {
             disabled={isLoading}
           />
         </div>
+
+        {errors.clinicalContext && (
+          <div className="form-group col-span-2">
+            <span className="form-error-text" style={{ fontSize: '0.85rem' }}>
+              <AlertCircle size={14} /> {errors.clinicalContext}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="form-actions">
@@ -245,15 +268,28 @@ export const CaseForm: React.FC<CaseFormProps> = ({ onSubmit, isLoading }) => {
           className="btn btn-secondary"
           onClick={handleClear}
           disabled={isLoading}
+          id="btn-clear-form"
         >
           <RotateCcw size={16} />
-          <span>Clear</span>
+          <span>Clear Form</span>
+        </button>
+
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={handleCycleDemo}
+          disabled={isLoading}
+          id="btn-load-demo"
+          title="Load one of three synthetic demo scenarios"
+        >
+          <span>Load Demo Case ({selectedDemoIndex + 1}/3)</span>
         </button>
 
         <button
           type="submit"
           className="btn btn-primary btn-large"
           disabled={isLoading}
+          id="btn-analyze-case"
         >
           {isLoading ? (
             <>

@@ -7,9 +7,11 @@ import com.medlitai.exception.ResourceNotFoundException;
 import com.medlitai.model.AnalysisResult;
 import com.medlitai.model.ClinicalCase;
 import com.medlitai.model.EvidenceSource;
+import com.medlitai.model.Literature;
 import com.medlitai.repository.AnalysisResultRepository;
 import com.medlitai.repository.ClinicalCaseRepository;
 import com.medlitai.repository.EvidenceSourceRepository;
+import com.medlitai.repository.LiteratureRepository;
 import com.medlitai.service.CaseAnalysisService;
 import com.medlitai.service.LlmService;
 import com.medlitai.service.RagService;
@@ -30,6 +32,7 @@ public class CaseAnalysisServiceImpl implements CaseAnalysisService {
     private final ClinicalCaseRepository clinicalCaseRepository;
     private final AnalysisResultRepository analysisResultRepository;
     private final EvidenceSourceRepository evidenceSourceRepository;
+    private final LiteratureRepository literatureRepository;
     private final RagService ragService;
     private final LlmService llmService;
     private final ClinicalFeatureExtractor featureExtractor;
@@ -38,6 +41,7 @@ public class CaseAnalysisServiceImpl implements CaseAnalysisService {
     public CaseAnalysisServiceImpl(ClinicalCaseRepository clinicalCaseRepository,
                                    AnalysisResultRepository analysisResultRepository,
                                    EvidenceSourceRepository evidenceSourceRepository,
+                                   LiteratureRepository literatureRepository,
                                    RagService ragService,
                                    LlmService llmService,
                                    ClinicalFeatureExtractor featureExtractor,
@@ -45,6 +49,7 @@ public class CaseAnalysisServiceImpl implements CaseAnalysisService {
         this.clinicalCaseRepository = clinicalCaseRepository;
         this.analysisResultRepository = analysisResultRepository;
         this.evidenceSourceRepository = evidenceSourceRepository;
+        this.literatureRepository = literatureRepository;
         this.ragService = ragService;
         this.llmService = llmService;
         this.featureExtractor = featureExtractor;
@@ -158,12 +163,74 @@ public class CaseAnalysisServiceImpl implements CaseAnalysisService {
             return analyzeCase(caseId);
         }
 
-        AnalysisResult result = resultOpt.get();
+        return buildAnalysisResponse(resultOpt.get(), clinicalCase);
+    }
+
+    @Override
+    public AnalysisResultResponse getAnalysisById(Long id) {
+        // Look up either by analysis ID or fallback to case ID
+        Optional<AnalysisResult> resultOpt = analysisResultRepository.findById(id);
+        if (resultOpt.isPresent()) {
+            AnalysisResult result = resultOpt.get();
+            ClinicalCase clinicalCase = clinicalCaseRepository.findById(result.getCaseId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Associated clinical case not found for analysis id " + id));
+            return buildAnalysisResponse(result, clinicalCase);
+        }
+
+        // Try lookup by case ID
+        Optional<ClinicalCase> caseOpt = clinicalCaseRepository.findById(id);
+        if (caseOpt.isPresent()) {
+            return getAnalysisForCase(id);
+        }
+
+        throw new ResourceNotFoundException("Analysis result or case not found with identifier " + id);
+    }
+
+    @Override
+    public List<AnalysisResultResponse> getAllAnalyses() {
+        List<AnalysisResult> all = analysisResultRepository.findAll();
+        all.sort(Comparator.comparing(AnalysisResult::getCreatedAt).reversed());
+
+        List<AnalysisResultResponse> responses = new ArrayList<>();
+        for (AnalysisResult result : all) {
+            Optional<ClinicalCase> caseOpt = clinicalCaseRepository.findById(result.getCaseId());
+            caseOpt.ifPresent(c -> responses.add(buildAnalysisResponse(result, c)));
+        }
+        return responses;
+    }
+
+    private AnalysisResultResponse buildAnalysisResponse(AnalysisResult result, ClinicalCase clinicalCase) {
         List<String> keyFeatures = readJsonList(result.getKeyFeaturesJson());
         List<ClinicalConsiderationDTO> considerations = readJsonConsiderations(result.getClinicalConsiderationsJson());
 
+        // Resolve stored evidence sources with literature records
         List<EvidenceSource> sources = evidenceSourceRepository.findByAnalysisIdOrderByRelevanceScoreDesc(result.getId());
-        List<LiteratureDTO> relevantLiterature = ragService.retrieveEvidence(clinicalCase, keyFeatures);
+        List<LiteratureDTO> relevantLiterature = new ArrayList<>();
+
+        if (sources != null && !sources.isEmpty()) {
+            for (EvidenceSource src : sources) {
+                Optional<Literature> litOpt = literatureRepository.findById(src.getLiteratureId());
+                if (litOpt.isPresent()) {
+                    Literature lit = litOpt.get();
+                    relevantLiterature.add(new LiteratureDTO(
+                            lit.getId(),
+                            lit.getTitle(),
+                            lit.getAuthors(),
+                            lit.getPublicationYear(),
+                            lit.getJournal(),
+                            lit.getAbstractText(),
+                            lit.getTopic(),
+                            lit.getSourceType(),
+                            src.getRelevanceScore()
+                    ));
+                }
+            }
+        }
+
+        // Fallback to RAG retrieval if no persisted sources found
+        if (relevantLiterature.isEmpty()) {
+            relevantLiterature = ragService.retrieveEvidence(clinicalCase, keyFeatures);
+        }
 
         AnalysisResultResponse response = new AnalysisResultResponse();
         response.setId(result.getId());
@@ -173,7 +240,7 @@ public class CaseAnalysisServiceImpl implements CaseAnalysisService {
         response.setSummary(result.getSummary());
         response.setEvidenceStrength(result.getEvidenceStrength());
         response.setEvidenceSummary(
-                "Evidence synthesis retrieved from stored clinical simulation analysis."
+                "Evidence synthesis grounded on retrieved clinical literature and simulated RAG evidence."
         );
         response.setClinicalConsiderations(considerations);
         response.setSafetyLimitations(result.getSafetyLimitations());

@@ -59,9 +59,24 @@ export const api = {
     return handleResponse<AnalysisResult>(res);
   },
 
+  async getAnalysisById(analysisId: number): Promise<AnalysisResult> {
+    const res = await fetch(`${API_BASE_URL}/analyses/${analysisId}`);
+    return handleResponse<AnalysisResult>(res);
+  },
+
+  async getAllAnalyses(): Promise<AnalysisResult[]> {
+    const res = await fetch(`${API_BASE_URL}/analyses`);
+    return handleResponse<AnalysisResult[]>(res);
+  },
+
   async getAllLiterature(): Promise<LiteratureRecord[]> {
     const res = await fetch(`${API_BASE_URL}/literature`);
     return handleResponse<LiteratureRecord[]>(res);
+  },
+
+  async getLiteratureById(id: number): Promise<LiteratureRecord> {
+    const res = await fetch(`${API_BASE_URL}/literature/${id}`);
+    return handleResponse<LiteratureRecord>(res);
   },
 
   async searchLiterature(params: LiteratureSearchQuery): Promise<LiteratureRecord[]> {

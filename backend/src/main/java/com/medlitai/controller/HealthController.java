@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
 
 @RestController
-@RequestMapping("/api/health")
+@RequestMapping("/api")
 public class HealthController {
 
     private final ClinicalCaseRepository clinicalCaseRepository;
@@ -28,7 +28,7 @@ public class HealthController {
         this.llmService = llmService;
     }
 
-    @GetMapping
+    @GetMapping({"/health", "/status"})
     public ResponseEntity<HealthResponse> getHealth() {
         long caseCount = clinicalCaseRepository.count();
         long litCount = literatureRepository.count();

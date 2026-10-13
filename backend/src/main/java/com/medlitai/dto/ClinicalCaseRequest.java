@@ -28,6 +28,20 @@ public class ClinicalCaseRequest {
     public ClinicalCaseRequest() {
     }
 
+    public ClinicalCaseRequest(Integer age, String gender, String chiefComplaint, String symptoms,
+                               String medicalHistory, String medications, String labResults,
+                               String additionalInformation, Boolean isDemoCase) {
+        this.age = age;
+        this.gender = gender;
+        this.chiefComplaint = chiefComplaint;
+        this.symptoms = symptoms;
+        this.medicalHistory = medicalHistory;
+        this.medications = medications;
+        this.labResults = labResults;
+        this.additionalInformation = additionalInformation;
+        this.isDemoCase = isDemoCase;
+    }
+
     public Integer getAge() {
         return age;
     }

@@ -106,15 +106,23 @@ public class LiteratureServiceImpl implements LiteratureService {
         String abstractText = lit.getAbstractText().toLowerCase(Locale.ROOT);
         String topic = lit.getTopic().toLowerCase(Locale.ROOT);
 
-        int score = 45; // baseline
+        int score = 50; // baseline
 
         // Feature matching (high priority)
         if (features != null) {
             for (String feature : features) {
                 String f = feature.toLowerCase(Locale.ROOT);
-                if (title.contains(f)) score += 20;
-                else if (abstractText.contains(f)) score += 12;
-                if (topic.contains(f)) score += 10;
+                if (title.contains(f)) score += 24;
+                else if (abstractText.contains(f)) score += 14;
+                if (topic.contains(f)) score += 12;
+
+                // Also match significant keywords of the feature (e.g. "troponin", "hypertension")
+                for (String word : f.split("[\\s,;]+")) {
+                    if (word.length() > 3) {
+                        if (title.contains(word)) score += 18;
+                        else if (abstractText.contains(word)) score += 10;
+                    }
+                }
             }
         }
 
@@ -123,15 +131,14 @@ public class LiteratureServiceImpl implements LiteratureService {
             String[] tokens = query.toLowerCase(Locale.ROOT).split("[\\s,;]+");
             for (String token : tokens) {
                 if (token.length() > 3) {
-                    if (title.contains(token)) score += 8;
-                    else if (abstractText.contains(token)) score += 4;
+                    if (title.contains(token)) score += 10;
+                    else if (abstractText.contains(token)) score += 6;
                 }
             }
         }
 
-        // Cap score logically between 60 and 96 for demo realism
+        // Cap score logically between 60 and 96 for realism
         if (score > 96) score = 96;
-        if (score < 50 && (features == null || features.isEmpty())) score = 60;
         return score;
     }
 

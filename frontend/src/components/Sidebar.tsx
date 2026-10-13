@@ -1,43 +1,60 @@
 import React from 'react';
-import { LayoutDashboard, FilePlus, BookOpen, Info } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, FilePlus, BookOpen, Layers, Info } from 'lucide-react';
 
 interface SidebarProps {
-  currentTab: 'dashboard' | 'new-case' | 'results' | 'literature';
-  onSelectTab: (tab: 'dashboard' | 'new-case' | 'literature') => void;
   caseCount?: number;
   literatureCount?: number;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
-  currentTab,
-  onSelectTab,
   caseCount = 0,
   literatureCount = 0,
 }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const pathname = location.pathname;
+
+  const isDashboard = pathname === '/';
+  const isNewCase = pathname === '/case/new';
+  const isAnalysis = pathname.startsWith('/analysis');
+  const isLiterature = pathname.startsWith('/literature');
+
   return (
     <aside className="app-sidebar">
       <div className="sidebar-nav">
         <div className="nav-group-title">NAVIGATION</div>
         <button
-          className={`nav-item ${currentTab === 'dashboard' ? 'active' : ''}`}
-          onClick={() => onSelectTab('dashboard')}
+          className={`nav-item ${isDashboard ? 'active' : ''}`}
+          onClick={() => navigate('/')}
+          id="nav-dashboard"
         >
           <LayoutDashboard size={18} />
           <span>Dashboard</span>
         </button>
 
         <button
-          className={`nav-item ${currentTab === 'new-case' || currentTab === 'results' ? 'active' : ''}`}
-          onClick={() => onSelectTab('new-case')}
+          className={`nav-item ${isNewCase ? 'active' : ''}`}
+          onClick={() => navigate('/case/new')}
+          id="nav-case-form"
         >
           <FilePlus size={18} />
-          <span>Clinical Case Form</span>
+          <span>New Case Form</span>
           {caseCount > 0 && <span className="nav-badge">{caseCount}</span>}
         </button>
 
+        {isAnalysis && (
+          <button className="nav-item active" style={{ cursor: 'default' }} id="nav-analysis">
+            <Layers size={18} />
+            <span>Case Analysis</span>
+            <span className="nav-badge" style={{ background: '#3b82f6' }}>Active</span>
+          </button>
+        )}
+
         <button
-          className={`nav-item ${currentTab === 'literature' ? 'active' : ''}`}
-          onClick={() => onSelectTab('literature')}
+          className={`nav-item ${isLiterature ? 'active' : ''}`}
+          onClick={() => navigate('/literature')}
+          id="nav-literature"
         >
           <BookOpen size={18} />
           <span>Medical Literature</span>
@@ -52,7 +69,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span>Research Sandbox</span>
           </div>
           <p className="badge-box-text">
-            Simulated environment with local MySQL evidence store.
+            Simulated educational environment grounded on local MySQL evidence store.
           </p>
         </div>
       </div>

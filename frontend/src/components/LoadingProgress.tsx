@@ -6,12 +6,11 @@ interface LoadingProgressProps {
 }
 
 const STEPS = [
-  'Processing clinical case profile',
-  'Extracting key clinical features & terms',
-  'Searching medical literature database',
-  'Retrieving evidence context & citations',
-  'Generating evidence-grounded synthesis',
-  'Preparing clinical considerations & references',
+  'Processing case information',
+  'Searching available literature',
+  'Retrieving relevant evidence',
+  'Preparing the summary',
+  'Finalizing references',
 ];
 
 export const LoadingProgress: React.FC<LoadingProgressProps> = () => {

@@ -1,8 +1,10 @@
 import React from 'react';
-import { Activity, BookOpen, Layers, CheckCircle2, ArrowRight, Play, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Activity, BookOpen, Layers, ArrowRight, Play, Sparkles, FileEdit, Database, ArrowRightCircle } from 'lucide-react';
 import type { ClinicalCase, HealthStatus, LiteratureRecord } from '../types/case';
 import { DashboardCard } from '../components/DashboardCard';
 import { Disclaimer } from '../components/Disclaimer';
+import { EmptyState } from '../components/EmptyState';
 import { SYNTHETIC_DEMO_CASES } from '../data/syntheticDemoCases';
 
 interface DashboardPageProps {
@@ -13,6 +15,7 @@ interface DashboardPageProps {
   onNavigateLiterature: () => void;
   onSelectCaseToAnalyze: (caseId: number) => void;
   onQuickLoadDemo: (index: number) => void;
+  onPrefillDemo?: (index: number) => void;
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
@@ -23,46 +26,59 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   onNavigateLiterature,
   onSelectCaseToAnalyze,
   onQuickLoadDemo,
+  onPrefillDemo,
 }) => {
-  const totalCases = cases.length > 0 ? cases.length : (health?.caseCount || 24);
-  const totalLit = literature.length > 0 ? literature.length : (health?.literatureCount || 128);
+  const navigate = useNavigate();
+
+  const totalCases = cases.length > 0 ? cases.length : (health?.caseCount ?? 0);
+  const totalLit = literature.length > 0 ? literature.length : (health?.literatureCount ?? 0);
 
   return (
     <div className="page-container dashboard-page">
       <Disclaimer />
 
-      {/* Metric Cards Row */}
+      {/* Header Info */}
+      <div style={{ marginBottom: '20px' }}>
+        <h2 style={{ fontSize: '1.45rem', fontWeight: 700, color: '#0f172a', marginBottom: '4px' }}>
+          AI Medical Literature &amp; Clinical Decision Support Simulator
+        </h2>
+        <p style={{ color: '#475569', fontSize: '0.95rem' }}>
+          Explore medical literature. Understand evidence. Support informed research.
+        </p>
+      </div>
+
+      {/* Metric Cards Row — Strictly Real Records */}
       <div className="metrics-grid">
         <DashboardCard
           title="Clinical Cases"
-          value={`${totalCases} Demo Cases`}
-          subtitle="Synthetic educational patient profiles"
+          value={`${totalCases} Cases`}
+          subtitle="Stored synthetic scenarios in MySQL"
           icon={<Activity size={22} />}
-          tag="Demo Dataset"
+          tag={totalCases > 0 ? 'MySQL Store' : 'No Cases Yet'}
           variant="blue"
         />
         <DashboardCard
-          title="Literature Sources"
-          value={`${totalLit} Demo Records`}
-          subtitle="Curated evidence-based guidelines"
+          title="Literature Guidelines"
+          value={`${totalLit} Records`}
+          subtitle="Evidence-based guidelines &amp; trials"
           icon={<BookOpen size={22} />}
-          tag="Local MySQL Store"
+          tag="Curated Dataset"
           variant="indigo"
         />
         <DashboardCard
-          title="Evidence Matches"
-          value="86 Matches"
-          subtitle="Computed semantic &amp; feature linkages"
+          title="Evidence Engine"
+          value={health?.demoMode ? 'Demo Mode' : 'Live LLM'}
+          subtitle="RAG keyword &amp; feature retrieval"
           icon={<Layers size={22} />}
-          tag="Simulated RAG"
+          tag={health?.demoMode ? 'Deterministic' : 'Configured API'}
           variant="green"
         />
         <DashboardCard
-          title="System Status"
-          value={health?.demoMode ? 'Demo Mode' : 'Live Mode'}
-          subtitle={health?.database || 'MySQL Connected'}
-          icon={<CheckCircle2 size={22} />}
-          tag="Local Sandbox"
+          title="Database Status"
+          value={health?.status === 'UP' ? 'Connected' : 'Offline'}
+          subtitle={health?.database || 'MySQL localhost:3306'}
+          icon={<Database size={22} />}
+          tag={health?.status === 'UP' ? 'Online' : 'Pending'}
           variant="amber"
         />
       </div>
@@ -76,15 +92,80 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             and formats structured non-prescriptive decision support for educational evaluation.
           </p>
           <div className="hero-actions">
-            <button className="btn btn-primary btn-large" onClick={onNavigateNewCase}>
+            <button className="btn btn-primary btn-large" onClick={onNavigateNewCase} id="btn-hero-new-case">
               <Sparkles size={18} />
-              <span>Enter New Case</span>
+              <span>New Clinical Case</span>
             </button>
-            <button className="btn btn-secondary btn-large" onClick={onNavigateLiterature}>
+            <button className="btn btn-secondary btn-large" onClick={onNavigateLiterature} id="btn-hero-browse-lit">
               <BookOpen size={18} />
-              <span>Browse 12+ Guidelines</span>
+              <span>Browse {totalLit > 0 ? `${totalLit} ` : ''}Literature Records</span>
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* primary Workflow Pipeline Diagram */}
+      <div
+        className="workflow-pipeline-card"
+        style={{
+          background: '#ffffff',
+          border: '1px solid #e2e8f0',
+          borderRadius: '12px',
+          padding: '20px 24px',
+          marginBottom: '28px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+        }}
+      >
+        <div style={{ marginBottom: '12px' }}>
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 600, color: '#1e293b' }}>
+            Educational Research Simulation Workflow
+          </h3>
+          <p style={{ fontSize: '0.84rem', color: '#64748b' }}>
+            Structured pipeline from synthetic patient input to guideline-grounded decision support
+          </p>
+        </div>
+        <div
+          className="workflow-steps"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '8px',
+            overflowX: 'auto',
+            paddingTop: '8px',
+            paddingBottom: '4px',
+          }}
+        >
+          {[
+            'Synthetic Clinical Case',
+            'Feature Extraction',
+            'Literature Retrieval',
+            'Evidence Analysis',
+            'AI / Demo Summary',
+            'Clinical Considerations',
+            'Source References',
+          ].map((step, idx, arr) => (
+            <React.Fragment key={idx}>
+              <div
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  padding: '8px 12px',
+                  textAlign: 'center',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  color: '#334155',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {step}
+              </div>
+              {idx < arr.length - 1 && (
+                <ArrowRightCircle size={16} color="#94a3b8" style={{ flexShrink: 0 }} />
+              )}
+            </React.Fragment>
+          ))}
         </div>
       </div>
 
@@ -94,7 +175,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           <div>
             <h3>Pre-Configured Synthetic Demo Scenarios</h3>
             <p className="section-subtitle">
-              Click any scenario to immediately populate and simulate the literature-grounded analysis
+              Select any scenario to inspect or simulate the evidence-grounded research pipeline
             </p>
           </div>
         </div>
@@ -111,15 +192,35 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 <strong>Chief Complaint:</strong> {demo.data.chiefComplaint}
               </p>
               <div className="demo-case-snippet">
-                <span>{demo.data.age}yo {demo.data.gender} &bull; {demo.data.medicalHistory}</span>
+                <span>
+                  {demo.data.age}yo {demo.data.gender} &bull; {demo.data.medicalHistory}
+                </span>
               </div>
-              <button
-                className="btn btn-primary btn-sm btn-full"
-                onClick={() => onQuickLoadDemo(index)}
-              >
-                <Play size={14} />
-                <span>Simulate Case {index + 1}</span>
-              </button>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  style={{ flex: 1 }}
+                  onClick={() => {
+                    if (onPrefillDemo) onPrefillDemo(index);
+                    else navigate('/case/new');
+                  }}
+                  title="Prefill this case in the clinical case entry form"
+                >
+                  <FileEdit size={13} />
+                  <span>Edit in Form</span>
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  style={{ flex: 1.2 }}
+                  onClick={() => onQuickLoadDemo(index)}
+                  title="Run analysis immediately on this case"
+                >
+                  <Play size={13} />
+                  <span>Analyze Now</span>
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -137,53 +238,58 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </button>
         </div>
 
-        <div className="recent-cases-table-wrapper">
-          <table className="recent-cases-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Patient Profile</th>
-                <th>Chief Complaint</th>
-                <th>Key Labs / History</th>
-                <th>Type</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cases.slice(0, 5).map((c) => (
-                <tr key={c.id}>
-                  <td>
-                    <span className="case-id-tag">#{c.id}</span>
-                  </td>
-                  <td>
-                    <strong>{c.age}yo {c.gender}</strong>
-                  </td>
-                  <td className="cell-truncate">{c.chiefComplaint}</td>
-                  <td className="cell-truncate text-muted">{c.labResults || c.medicalHistory || '—'}</td>
-                  <td>
-                    <span className="badge badge-demo">Synthetic</span>
-                  </td>
-                  <td>
-                    <button
-                      className="btn btn-sm btn-outline"
-                      onClick={() => c.id && onSelectCaseToAnalyze(c.id)}
-                    >
-                      <Layers size={13} />
-                      <span>Analyze</span>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {cases.length === 0 && (
+        {cases.length > 0 ? (
+          <div className="recent-cases-table-wrapper">
+            <table className="recent-cases-table">
+              <thead>
                 <tr>
-                  <td colSpan={6} className="text-center py-4 text-muted">
-                    Loading recent cases...
-                  </td>
+                  <th>ID</th>
+                  <th>Patient Profile</th>
+                  <th>Chief Complaint</th>
+                  <th>Key Labs / History</th>
+                  <th>Type</th>
+                  <th>Actions</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {cases.slice(0, 10).map((c) => (
+                  <tr key={c.id}>
+                    <td>
+                      <span className="case-id-tag">#{c.id}</span>
+                    </td>
+                    <td>
+                      <strong>
+                        {c.age}yo {c.gender}
+                      </strong>
+                    </td>
+                    <td className="cell-truncate">{c.chiefComplaint}</td>
+                    <td className="cell-truncate text-muted">{c.labResults || c.medicalHistory || '—'}</td>
+                    <td>
+                      <span className="badge badge-demo">Synthetic</span>
+                    </td>
+                    <td>
+                      <button
+                        className="btn btn-sm btn-outline"
+                        onClick={() => c.id && onSelectCaseToAnalyze(c.id)}
+                      >
+                        <Layers size={13} />
+                        <span>Analyze</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <EmptyState
+            title="No clinical cases recorded yet"
+            description="Create your first synthetic clinical case or choose one of the three pre-configured demo cases above to start evidence synthesis."
+            actionText="Enter New Case"
+            onAction={onNavigateNewCase}
+            icon={<Activity size={40} />}
+          />
+        )}
       </div>
     </div>
   );

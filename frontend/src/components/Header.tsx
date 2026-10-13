@@ -1,16 +1,31 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Stethoscope, Sparkles } from 'lucide-react';
 import type { HealthStatus } from '../types/case';
 
 interface HeaderProps {
   health: HealthStatus | null;
-  onNavigateNewCase: () => void;
+  onNavigateNewCase?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ health, onNavigateNewCase }) => {
+  const navigate = useNavigate();
+
+  const handleBrandClick = () => {
+    navigate('/');
+  };
+
+  const handleNewCaseClick = () => {
+    if (onNavigateNewCase) {
+      onNavigateNewCase();
+    } else {
+      navigate('/case/new');
+    }
+  };
+
   return (
     <header className="app-header">
-      <div className="header-brand">
+      <div className="header-brand" onClick={handleBrandClick} style={{ cursor: 'pointer' }} id="header-brand">
         <div className="brand-logo">
           <Stethoscope className="icon-main" size={26} />
         </div>
@@ -36,7 +51,7 @@ export const Header: React.FC<HeaderProps> = ({ health, onNavigateNewCase }) => 
           )}
         </div>
 
-        <button className="btn btn-primary" onClick={onNavigateNewCase}>
+        <button className="btn btn-primary" onClick={handleNewCaseClick} id="header-btn-new-case">
           <Sparkles size={16} />
           <span>New Clinical Case</span>
         </button>

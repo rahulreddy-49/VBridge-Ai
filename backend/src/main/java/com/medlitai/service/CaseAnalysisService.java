@@ -13,5 +13,7 @@ public interface CaseAnalysisService {
     ClinicalCaseResponse getCaseById(Long id);
     AnalysisResultResponse analyzeCase(Long caseId);
     AnalysisResultResponse getAnalysisForCase(Long caseId);
+    AnalysisResultResponse getAnalysisById(Long id);
+    List<AnalysisResultResponse> getAllAnalyses();
     void seedDemoCasesIfEmpty();
 }

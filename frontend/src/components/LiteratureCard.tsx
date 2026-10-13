@@ -5,9 +5,10 @@ import type { LiteratureRecord } from '../types/case';
 interface LiteratureCardProps {
   literature: LiteratureRecord;
   index?: number;
+  onInspect?: (lit: LiteratureRecord) => void;
 }
 
-export const LiteratureCard: React.FC<LiteratureCardProps> = ({ literature, index }) => {
+export const LiteratureCard: React.FC<LiteratureCardProps> = ({ literature, index, onInspect }) => {
   const score = literature.relevanceScore ?? 80;
 
   const getScoreColorClass = (val: number) => {
@@ -24,9 +25,12 @@ export const LiteratureCard: React.FC<LiteratureCardProps> = ({ literature, inde
           <span className="lit-source-type-badge">{literature.sourceType}</span>
         </div>
         {literature.relevanceScore !== undefined && (
-          <div className={`lit-relevance-pill ${getScoreColorClass(score)}`}>
+          <div
+            className={`lit-relevance-pill ${getScoreColorClass(score)}`}
+            title="Lexical & feature retrieval similarity score (not clinical trial grade)"
+          >
             <Award size={13} />
-            <span>Relevance: {score}%</span>
+            <span>Match: {score}%</span>
           </div>
         )}
       </div>
@@ -49,6 +53,19 @@ export const LiteratureCard: React.FC<LiteratureCardProps> = ({ literature, inde
       </div>
 
       <p className="lit-abstract">{literature.abstractText}</p>
+
+      {onInspect && (
+        <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end' }}>
+          <button
+            type="button"
+            className="btn btn-sm btn-outline"
+            onClick={() => onInspect(literature)}
+            style={{ fontSize: '0.8rem' }}
+          >
+            Inspect Record Details
+          </button>
+        </div>
+      )}
     </div>
   );
 };

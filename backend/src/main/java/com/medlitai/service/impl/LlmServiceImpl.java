@@ -228,15 +228,159 @@ public class LlmServiceImpl implements LlmService {
     }
 
     private LlmAnalysisOutput callGemini(ClinicalCase clinicalCase, List<String> keyFeatures, List<LiteratureDTO> retrievedLiterature) {
-        // Safe placeholder for live external Gemini calls if user supplies GEMINI_API_KEY
-        // Falls back to demo synthesis if any failure or format issue occurs
+        try {
+            String prompt = buildPrompt(clinicalCase, keyFeatures, retrievedLiterature);
+            Map<String, Object> part = Map.of("text", prompt);
+            Map<String, Object> content = Map.of("parts", List.of(part));
+            Map<String, Object> generationConfig = Map.of(
+                    "temperature", 0.2,
+                    "responseMimeType", "application/json"
+            );
+            Map<String, Object> payload = Map.of(
+                    "contents", List.of(content),
+                    "generationConfig", generationConfig
+            );
+
+            String requestBody = objectMapper.writeValueAsString(payload);
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + geminiApiKey.trim()))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                    .timeout(Duration.ofSeconds(15))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                JsonNode root = objectMapper.readTree(response.body());
+                JsonNode textNode = root.path("candidates").path(0).path("content").path("parts").path(0).path("text");
+                if (!textNode.isMissingNode()) {
+                    return parseStructuredOutput(textNode.asText(), false);
+                }
+            } else {
+                log.warn("Gemini API returned HTTP status {}: {}", response.statusCode(), response.body());
+            }
+        } catch (Exception e) {
+            log.warn("Error calling Gemini API: {}", e.getMessage());
+        }
         return generateDemoSynthesis(clinicalCase, keyFeatures, retrievedLiterature);
     }
 
     private LlmAnalysisOutput callOpenAi(ClinicalCase clinicalCase, List<String> keyFeatures, List<LiteratureDTO> retrievedLiterature) {
-        // Safe placeholder for live external OpenAI calls if user supplies OPENAI_API_KEY
-        // Falls back to demo synthesis if any failure or format issue occurs
+        try {
+            String prompt = buildPrompt(clinicalCase, keyFeatures, retrievedLiterature);
+            Map<String, Object> payload = Map.of(
+                    "model", "gpt-4o-mini",
+                    "temperature", 0.2,
+                    "response_format", Map.of("type", "json_object"),
+                    "messages", List.of(
+                            Map.of("role", "system", "content", "You are an educational medical literature research synthesis assistant. You output only valid structured JSON conforming to the requested schema. Never provide prescriptive advice or diagnoses."),
+                            Map.of("role", "user", "content", prompt)
+                    )
+            );
+
+            String requestBody = objectMapper.writeValueAsString(payload);
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.openai.com/v1/chat/completions"))
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + openAiApiKey.trim())
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                    .timeout(Duration.ofSeconds(15))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                JsonNode root = objectMapper.readTree(response.body());
+                JsonNode contentNode = root.path("choices").path(0).path("message").path("content");
+                if (!contentNode.isMissingNode()) {
+                    return parseStructuredOutput(contentNode.asText(), false);
+                }
+            } else {
+                log.warn("OpenAI API returned HTTP status {}: {}", response.statusCode(), response.body());
+            }
+        } catch (Exception e) {
+            log.warn("Error calling OpenAI API: {}", e.getMessage());
+        }
         return generateDemoSynthesis(clinicalCase, keyFeatures, retrievedLiterature);
+    }
+
+    private String buildPrompt(ClinicalCase clinicalCase, List<String> keyFeatures, List<LiteratureDTO> retrievedLiterature) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("You are analyzing a synthetic educational clinical scenario for evidence grounding.\n\n");
+        sb.append("CLINICAL PRESENTATION:\n");
+        sb.append(String.format("- Patient: %d-year-old %s\n", clinicalCase.getAge(), clinicalCase.getGender()));
+        sb.append(String.format("- Chief Complaint: %s\n", clinicalCase.getChiefComplaint()));
+        if (clinicalCase.getSymptoms() != null) sb.append(String.format("- Symptoms: %s\n", clinicalCase.getSymptoms()));
+        if (clinicalCase.getMedicalHistory() != null) sb.append(String.format("- Medical History: %s\n", clinicalCase.getMedicalHistory()));
+        if (clinicalCase.getMedications() != null) sb.append(String.format("- Medications: %s\n", clinicalCase.getMedications()));
+        if (clinicalCase.getLabResults() != null) sb.append(String.format("- Labs/Diagnostics: %s\n", clinicalCase.getLabResults()));
+        sb.append(String.format("- Extracted Clinical Features: %s\n\n", String.join(", ", keyFeatures)));
+
+        sb.append("RETRIEVED MEDICAL LITERATURE CONTEXT (DATA):\n");
+        for (int i = 0; i < retrievedLiterature.size(); i++) {
+            LiteratureDTO lit = retrievedLiterature.get(i);
+            sb.append(String.format("[%d] %s (%s, %d) - %s\n", i + 1, lit.getTitle(), lit.getJournal(), lit.getPublicationYear(), lit.getAbstractText()));
+        }
+
+        sb.append("\nReturn a JSON object with this exact structure:\n");
+        sb.append("{\n");
+        sb.append("  \"caseSummary\": \"Comprehensive narrative summary of the case presentation\",\n");
+        sb.append("  \"evidenceSummary\": \"Objective synthesis of the retrieved literature relevant to this scenario\",\n");
+        sb.append("  \"evidenceStrength\": \"High\" | \"Moderate\" | \"Limited\",\n");
+        sb.append("  \"clinicalConsiderations\": [\n");
+        sb.append("    {\n");
+        sb.append("      \"title\": \"Area of clinical evaluation\",\n");
+        sb.append("      \"description\": \"Informational explanation\",\n");
+        sb.append("      \"confidenceLevel\": \"High\" | \"Moderate\" | \"Limited\",\n");
+        sb.append("      \"supportingEvidence\": \"Guideline-backed evidence rationale\",\n");
+        sb.append("      \"relevantSources\": [\"Title of source 1\", \"Title of source 2\"],\n");
+        sb.append("      \"potentialRisksAndLimitations\": \"Important limitations or differential questions\"\n");
+        sb.append("    }\n");
+        sb.append("  ],\n");
+        sb.append("  \"safetyLimitations\": \"Clear plain-language statement of clinical limitations, missing information, and necessity of licensed medical judgment\"\n");
+        sb.append("}\n");
+        return sb.toString();
+    }
+
+    private LlmAnalysisOutput parseStructuredOutput(String jsonText, boolean isDemoMode) {
+        try {
+            JsonNode root = objectMapper.readTree(jsonText);
+            String caseSummary = root.path("caseSummary").asText("Clinical case summary extracted from scenario.");
+            String evidenceSummary = root.path("evidenceSummary").asText("Synthesized evidence from medical literature.");
+            String evidenceStrength = root.path("evidenceStrength").asText("Moderate");
+            String safetyLimitations = root.path("safetyLimitations").asText("Prototype simulation output. Requires professional physician review.");
+
+            List<ClinicalConsiderationDTO> considerations = new ArrayList<>();
+            JsonNode consNode = root.path("clinicalConsiderations");
+            if (consNode.isArray()) {
+                for (JsonNode item : consNode) {
+                    List<String> sources = new ArrayList<>();
+                    JsonNode sourcesNode = item.path("relevantSources");
+                    if (sourcesNode.isArray()) {
+                        sourcesNode.forEach(s -> sources.add(s.asText()));
+                    }
+                    considerations.add(new ClinicalConsiderationDTO(
+                            item.path("title").asText("Clinical Consideration"),
+                            item.path("description").asText(""),
+                            item.path("confidenceLevel").asText("Moderate"),
+                            item.path("supportingEvidence").asText(""),
+                            sources,
+                            item.path("potentialRisksAndLimitations").asText("")
+                    ));
+                }
+            }
+
+            return new LlmAnalysisOutput(
+                    caseSummary,
+                    evidenceSummary,
+                    evidenceStrength,
+                    considerations,
+                    safetyLimitations,
+                    isDemoMode
+            );
+        } catch (Exception e) {
+            log.warn("Failed to parse external LLM structured JSON response: {}", e.getMessage());
+            throw new RuntimeException("LLM JSON parsing failed", e);
+        }
     }
 
     private boolean isEmpty(String str) {

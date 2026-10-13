@@ -1,5 +1,5 @@
-import React from 'react';
-import { User, Activity, FileText, Pill, FlaskConical, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { User, Activity, FileText, Pill, FlaskConical, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import type { ClinicalCase } from '../types/case';
 
 interface CaseSummaryProps {
@@ -7,6 +7,8 @@ interface CaseSummaryProps {
 }
 
 export const CaseSummary: React.FC<CaseSummaryProps> = ({ clinicalCase }) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   return (
     <div className="case-summary-card">
       <div className="summary-header">
@@ -23,12 +25,23 @@ export const CaseSummary: React.FC<CaseSummaryProps> = ({ clinicalCase }) => {
             </span>
           </div>
         </div>
-        <div className="chief-complaint-badge">
-          <strong>Chief Complaint:</strong> {clinicalCase.chiefComplaint}
+        <div className="summary-header-right" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="chief-complaint-badge">
+            <strong>Chief Complaint:</strong> {clinicalCase.chiefComplaint}
+          </div>
+          <button
+            type="button"
+            className="btn btn-sm btn-outline"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            title={isCollapsed ? 'Expand case details' : 'Collapse case details'}
+          >
+            {isCollapsed ? <><ChevronDown size={14} /> Expand</> : <><ChevronUp size={14} /> Collapse</>}
+          </button>
         </div>
       </div>
 
-      <div className="summary-grid">
+      {!isCollapsed && (
+        <div className="summary-grid">
         {clinicalCase.symptoms && (
           <div className="summary-field">
             <div className="field-label">
@@ -74,6 +87,7 @@ export const CaseSummary: React.FC<CaseSummaryProps> = ({ clinicalCase }) => {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 };

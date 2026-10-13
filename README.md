@@ -11,209 +11,241 @@
 > - It does **NOT** provide definitive medical diagnoses.
 > - It does **NOT** issue medical prescriptions or autonomous treatment plans.
 > - It does **NOT** replace licensed clinical judgment or healthcare professional evaluation.
+> - For suspected acute coronary syndromes, chest pain with elevated troponin, or acute distress, immediate in-person emergency evaluation is mandatory.
 > - Use **synthetic / de-identified demo cases only**.
 
 ---
 
-## 1. Problem Statement
-Clinicians and medical trainees face vast, rapidly updating biomedical literature. Traditional search engines return unorganized document links without synthesizing actionable clinical considerations, while conversational LLMs frequently suffer from hallucinations, lack verifiable source grounding, or fail to communicate crucial clinical risk factors and diagnostic limitations.
+## 1. Project Overview
+The **AI Medical Literature & Clinical Decision Support Simulator** is an evidence-oriented medical research workspace. It enables researchers, educators, and clinicians to enter synthetic clinical scenarios, extract clinical features, retrieve relevant medical literature from a curated biomedical dataset, synthesize evidence using Retrieval-Augmented Generation (RAG), and review structured, non-prescriptive clinical considerations with explicit source references and safety limitations.
 
-## 2. Objective
-Build an educational full-stack simulator demonstrating an end-to-end RAG architecture that:
-1. Accepts a synthetic clinical patient profile.
-2. Extracts key clinical features and terminology.
-3. Retrieves relevant evidence-based literature and clinical guidelines.
-4. Generates non-prescriptive, structured clinical considerations with explicit confidence levels, supporting citations, and limitation factors.
-5. Functions out-of-the-box in **Demo Mode** without external AI API dependencies.
+## 2. Problem Statement
+Clinicians, medical researchers, and students must navigate voluminous, rapidly evolving biomedical literature. Conventional search tools return unranked documents without synthesizing actionable clinical rationale, while generic generative AI chat interfaces frequently hallucinate citations, provide ungrounded diagnoses, and fail to highlight critical safety limitations and emergency evaluation requirements.
+
+## 3. Proposed Solution
+This simulator provides an end-to-end, source-grounded clinical research pipeline:
+1. **Synthetic Case Intake**: Captures patient demographics, chief complaints, symptoms, medical history, medications, and laboratory findings.
+2. **Clinical Feature Extraction**: Rule-based and pattern-matched extraction of key biomedical terms and risk factors (e.g., *Chest Pain*, *Elevated Troponin*, *Hypertension*, *Diabetes Mellitus*, *Dyspnea*, *Asthma*).
+3. **Evidence Retrieval**: Lexical and semantic scoring of curated clinical trial guidelines and consensus statements stored in MySQL.
+4. **Structured Evidence Synthesis**: RAG-driven synthesis linking presenting findings with published medical literature.
+5. **Clinical Considerations**: Non-diagnostic considerations outlining evaluation pathways, guideline agreements, and limitations.
+6. **Safety & Emergency Warnings**: Prominent emergency notices for acute conditions (e.g., acute myocardial ischemia) and transparent limitations.
+
+## 4. Key Features
+- **Interactive Medical Research Dashboard (`/`)**: Real-time statistics from MySQL records, primary workflow diagram, pre-configured synthetic demo scenarios, and recent case history.
+- **New Clinical Case Form (`/case/new`)**: Field-level validation, age boundary constraints (0–130), "Prefer not to specify" gender option, input retention, and one-click demo presets.
+- **Case Results & Analysis Workspace (`/analysis/:id`)**:
+  - Acute cardiac emergency banner for chest pain / elevated troponin.
+  - Collapsible Case Overview.
+  - Extracted Key Clinical Terms tags.
+  - Relevant Medical Literature Cards with relevance score methodology notices.
+  - Structured Evidence Summary (findings, agreements, limitations).
+  - Decision Support Considerations with guideline pathways.
+  - Safety & Simulation Limitations box.
+  - Numbered Source References corresponding to retrieved records.
+  - Printable report generation (`window.print()`).
+- **Medical Literature Library (`/literature`)**: Full repository browsing, keyword search, topic filtering, and record detail inspection modal with APA citation copy.
+- **Deterministic Demo Mode**: Fully functional out-of-the-box without requiring external AI API keys.
+- **Configurable External LLM**: Server-side support for Google Gemini and OpenAI APIs when configured via environment variables.
+
+## 5. Technology Stack
+
+### Frontend
+- **React 19**: Modern UI component library.
+- **Vite 8**: Next-generation frontend build tooling.
+- **TypeScript**: Strict type definitions for cases, analysis results, and literature.
+- **React Router DOM 7**: Client-side SPA routing (`/`, `/case/new`, `/analysis/:id`, `/literature`, `*`).
+- **Lucide React**: Clean healthcare and research icons.
+- **Custom Design System**: Responsive CSS with medical blue/indigo accents, clean cards, and accessible typography.
+
+### Backend
+- **Java 21 LTS**: Modern Java runtime.
+- **Spring Boot 3.3.4**: Enterprise REST API framework.
+- **Spring Web**: MVC controllers, CORS configuration, exception handling.
+- **Spring Data JPA / Hibernate ORM**: Repository pattern and database persistence.
+- **Bean Validation (`jakarta.validation`)**: Request input validation.
+- **Maven**: Dependency and build management.
+
+### Database
+- **MySQL 8.0**: Relational persistence for cases, literature records, analysis results, and evidence links (`medlit_ai`).
 
 ---
 
-## 3. Technology Stack
-
-- **Frontend**:
-  - React 19
-  - Vite
-  - TypeScript
-  - Lucide React (Clean, modern clinical and research icons)
-  - Custom Medical Research Design System (Vanilla CSS with medical blue/indigo accents, rounded cards, responsive grid)
-
-- **Backend**:
-  - Java 21 LTS
-  - Spring Boot 3.3.4
-  - Spring Web (REST Controllers, CORS configuration)
-  - Spring Data JPA / Hibernate ORM
-  - Bean Validation (`jakarta.validation`)
-
-- **Database**:
-  - MySQL Server 8.0 (Database: `medlit_ai`)
-
-- **AI / RAG Pipeline**:
-  - `RagService` & `ClinicalFeatureExtractor`: Semantic and clinical keyword indexing over curated medical literature.
-  - `LlmService`: Abstraction for evidence synthesis and clinical considerations generation with deterministic fallback in **Demo Mode**.
-
----
-
-## 4. System Architecture & RAG Workflow
+## 6. Architecture & Primary Workflow
 
 ```
- USER (Browser)
-      │  Enters synthetic case or loads demo preset
-      ▼
- REACT + VITE + TYPESCRIPT FRONTEND (Port 5173)
-      │  HTTP POST /api/cases, /api/cases/{id}/analyze
-      ▼
- SPRING BOOT REST API (Port 8080)
-      │
-      ├─► CaseController (Validates DTO, stores clinical_cases)
-      │
-      ├─► ClinicalFeatureExtractor
-      │    • Extracts clinical terms (e.g., "Elevated Troponin", "Hypertension", "Dyspnea")
-      │
-      ├─► LiteratureService & RagService
-      │    • Computes clinical relevance across MySQL literature records
-      │    • Ranks matching guidelines & clinical trials
-      │
-      ├─► LlmService (Evidence Synthesis & Decision Support Engine)
-      │    • Demo Mode Grounding / Optional External LLM
-      │    • Generates evidence-supported clinical considerations
-      │    • Produces safety limitations & source citations
-      │
-      └─► MySQL 8.0 Database (`medlit_ai`)
-           • Tables: clinical_cases, literature, analysis_results, evidence_sources
+   USER (Browser)
+        │  Enters synthetic case or selects demo preset
+        ▼
+   REACT + VITE + TYPESCRIPT FRONTEND (Port 5173)
+        │  Typed REST calls (api.ts)
+        ▼
+   SPRING BOOT REST API (Port 8080)
+        │
+        ├─► CaseController & AnalysisController (Validates DTOs, manages lifecycle)
+        │
+        ├─► ClinicalFeatureExtractor
+        │    • Normalizes input and identifies key clinical features
+        │
+        ├─► LiteratureService & RagService
+        │    • Searches MySQL literature records
+        │    • Computes relevance score based on features & query tokens
+        │
+        ├─► LlmService (Evidence Synthesis & Decision Support Engine)
+        │    • Deterministic Demo Mode Synthesis (default)
+        │    • Configurable Gemini / OpenAI Live AI integration
+        │    • Associates findings with source identifiers
+        │
+        └─► MySQL 8.0 Persistence (`medlit_ai`)
+             • clinical_cases, literature, analysis_results, evidence_sources
 ```
 
 ---
 
-## 5. Database Schema
-
-The database `medlit_ai` is automatically initialized on application startup:
-
-1. **`clinical_cases`**:
-   - `id` (BIGINT, PK, Auto Increment)
-   - `age` (INT)
-   - `gender` (VARCHAR)
-   - `chief_complaint` (TEXT)
-   - `symptoms` (TEXT)
-   - `medical_history` (TEXT)
-   - `medications` (TEXT)
-   - `lab_results` (TEXT)
-   - `additional_information` (TEXT)
-   - `is_demo_case` (BOOLEAN)
-   - `created_at` (DATETIME)
-
-2. **`literature`**:
-   - `id` (BIGINT, PK, Auto Increment)
-   - `title` (VARCHAR)
-   - `authors` (VARCHAR)
-   - `publication_year` (INT)
-   - `journal` (VARCHAR)
-   - `abstract_text` (TEXT)
-   - `topic` (VARCHAR)
-   - `source_type` (VARCHAR, e.g. "Demo Literature Record")
-
-3. **`analysis_results`**:
-   - `id` (BIGINT, PK, Auto Increment)
-   - `case_id` (BIGINT, FK)
-   - `summary` (TEXT)
-   - `evidence_strength` (VARCHAR: "High", "Moderate", "Limited")
-   - `key_features_json` (TEXT)
-   - `clinical_considerations_json` (TEXT)
-   - `safety_limitations` (TEXT)
-   - `created_at` (DATETIME)
-
-4. **`evidence_sources`**:
-   - `id` (BIGINT, PK, Auto Increment)
-   - `analysis_id` (BIGINT, FK)
-   - `literature_id` (BIGINT, FK)
-   - `relevance_score` (INT)
-
----
-
-## 6. REST API Endpoints
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/health` | System health, MySQL status, demo mode flag, and counts |
-| `POST` | `/api/cases` | Create a new clinical case |
-| `GET` | `/api/cases` | Retrieve all cases (sorted newest first) |
-| `GET` | `/api/cases/demo` | Retrieve pre-seeded synthetic demo cases |
-| `GET` | `/api/cases/{id}` | Get clinical case details by ID |
-| `POST` | `/api/cases/{id}/analyze` | Execute RAG feature extraction, literature retrieval, and decision support synthesis |
-| `GET` | `/api/cases/{id}/analysis` | Retrieve the latest existing analysis for a case |
-| `GET` | `/api/literature` | Get all literature repository records |
-| `GET` | `/api/literature/{id}` | Get specific literature record |
-| `POST` | `/api/literature/search` | Search literature records by query, topic, and limit |
-
----
-
-## 7. Synthetic Demo Cases & Dataset
-
-The simulator seeds 3 synthetic clinical presentations covering common medical conditions:
-
-1. **Demo Case 1 (Cardiovascular)**:
-   - 55-year-old male with acute substernal chest discomfort radiating to left arm
-   - Elevated High-sensitivity Troponin T (0.082 ng/mL), ECG T-wave inversions
-   - Prior history: Essential hypertension, hyperlipidemia
-2. **Demo Case 2 (Metabolic & Cardiorenal)**:
-   - 45-year-old female with uncontrolled blood pressure, chronic fatigue, polyuria
-   - Blood pressure 158/96 mmHg, HbA1c 9.4%, spot urine albumin/creatinine 180 mg/g
-   - Comorbid Type 2 Diabetes and Hypertension
-3. **Demo Case 3 (Respiratory / Asthma)**:
-   - 30-year-old female with worsening nocturnal cough, breathlessness, wheezing
-   - Spirometry FEV1 72% predicted with 15% bronchodilator reversibility
-
----
-
-## 8. Setup & Running Instructions
+## 7. Frontend Setup
 
 ### Prerequisites
-- **Java**: OpenJDK 21 or higher
-- **Node.js**: v20 or higher & npm
-- **MySQL Server**: 8.0 running locally on `localhost:3306`
+- Node.js v20+ and npm
 
-### 1. Database Setup
-Log into MySQL and ensure the database exists (Spring Boot will also create it if not present):
-```sql
-CREATE DATABASE IF NOT EXISTS medlit_ai;
-```
-
-### 2. Configure Environment (Optional)
-Copy `.env.example` to `.env` if custom credentials or external AI keys are used:
-```bash
-cp .env.example .env
-```
-
-### 3. Start Backend (Spring Boot)
-From the project root:
-```bash
-cd backend
-.\mvnw.cmd spring-boot:run
-```
-The backend initializes the MySQL schema, seeds the 12 medical literature records and 3 synthetic demo cases, and listens on `http://localhost:8080`.
-
-Verify health endpoint:
-```bash
-curl http://localhost:8080/api/health
-```
-
-### 4. Start Frontend (React + Vite)
-From the project root:
+### Installation & Run
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-Open `http://localhost:5173` in your browser.
+The frontend starts on `http://localhost:5173/`.
+
+### Build & Lint
+```bash
+npm run build   # Production bundle validation (tsc -b && vite build)
+npm run lint    # Oxlint code quality verification
+```
 
 ---
 
-## 9. Limitations & Ethical Considerations
-- **Non-Diagnostic Scope**: Generated outputs represent educational simulations based on local records and simulated reasoning.
-- **Controlled Knowledge Base**: The MVP operates on a curated set of 12 clinical records representing cardiology, hypertension, pulmonology, and endocrinology.
-- **No Direct Clinical Action**: Healthcare providers must not use this system for real-time triage, acute prescribing, or emergency care.
+## 8. Backend Setup
 
-## 10. Future Enhancements
-- Integration with external biomedical APIs (PubMed / NCBI E-Utilities).
-- Embeddings via BioLinkBERT or ClinicalBERT vectors stored in a dedicated vector index.
-- Multi-document comparative guideline conflict analysis.
+### Prerequisites
+- Java 21 LTS (OpenJDK / Temurin)
+- Maven (or bundled `mvnw.cmd` wrapper)
+- MySQL 8.0 running on `localhost:3306`
+
+### Installation & Run
+```bash
+cd backend
+.\mvnw.cmd spring-boot:run
+```
+The backend initializes the database schema, seeds 12 curated guideline records, and listens on `http://localhost:8080`.
+
+---
+
+## 9. MySQL Setup
+
+Ensure MySQL is running on `localhost:3306`:
+```sql
+CREATE DATABASE IF NOT EXISTS medlit_ai;
+```
+
+Spring Boot auto-creates the tables on first startup via Hibernate (`spring.jpa.hibernate.ddl-auto=update`):
+- `clinical_cases`: Patient presentation, history, vitals, labs.
+- `literature`: Peer-reviewed guidelines, authors, year, journal, abstract, topic.
+- `analysis_results`: Generated synthesis, considerations JSON, safety limitations.
+- `evidence_sources`: Join table recording matched literature and relevance scores.
+
+---
+
+## 10. Environment Configuration
+
+Copy `.env.example` to configure custom database credentials or external AI keys:
+```properties
+# Server & Database Settings
+PORT=8080
+SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/medlit_ai?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&createDatabaseIfNotExist=true
+SPRING_DATASOURCE_USERNAME=root
+SPRING_DATASOURCE_PASSWORD=root
+
+# Simulator Mode (true = deterministic local demo mode)
+DEMO_MODE=true
+
+# Optional External LLM Keys (Server-side only — never exposed to client)
+GEMINI_API_KEY=
+OPENAI_API_KEY=
+
+# Frontend Configuration
+VITE_API_BASE_URL=http://localhost:8080/api
+```
+
+---
+
+## 11. REST API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/health` | Health status, database status, mode, and record counts |
+| `GET` | `/api/status` | System readiness endpoint |
+| `POST` | `/api/cases` | Create a new clinical case |
+| `GET` | `/api/cases` | List all cases (newest first) |
+| `GET` | `/api/cases/{id}` | Retrieve case details by ID |
+| `POST` | `/api/cases/{id}/analyze` | Execute feature extraction, RAG retrieval, and synthesis |
+| `GET` | `/api/analyses` | List all completed analyses |
+| `GET` | `/api/analyses/{id}` | Retrieve analysis result by analysis ID or case ID |
+| `GET` | `/api/literature` | List all literature records |
+| `GET` | `/api/literature/{id}` | Retrieve specific literature record |
+| `POST` | `/api/literature/search` | Search literature by query, topic, and limit |
+
+---
+
+## 12. Demo Mode
+The simulator runs out-of-the-box in **Demo Mode** (`DEMO_MODE=true`):
+- Uses deterministic evidence synthesis grounded on retrieved MySQL records.
+- Provides 3 pre-configured synthetic demo scenarios:
+  1. *Demo Case 1*: Acute Chest Discomfort & Elevated Troponin (Cardiovascular / Ischemia).
+  2. *Demo Case 2*: Uncontrolled Hypertension & Type 2 Diabetes (Metabolic & Cardiorenal).
+  3. *Demo Case 3*: Exacerbating Nocturnal Cough & Wheezing (Respiratory / Asthma).
+- Clearly badges all outputs with "Synthetic Educational Simulation" and "Demo Mode Grounding".
+
+---
+
+## 13. Literature Retrieval & RAG Implementation
+- **Feature Extraction**: `ClinicalFeatureExtractor` normalizes clinical text and matches symptom clusters.
+- **Relevance Scoring**: `LiteratureServiceImpl` calculates relevance scores based on feature matches, topic relevance, and keyword occurrences (calibrated between 50% and 96%).
+- **Evidence Context**: `RagServiceImpl` builds structured prompt context containing top-ranked records with full citations and abstracts.
+- **Relevance Distinction**: The UI explicitly clarifies that retrieval relevance scores measure text similarity, not the clinical trial hierarchy of evidence (e.g., GRADE).
+
+---
+
+## 14. Testing Instructions
+
+### Run Backend Unit & Integration Tests
+```bash
+cd backend
+.\mvnw.cmd test
+```
+**Test Results**: 18 tests executed across `ClinicalFeatureExtractorTest`, `LiteratureServiceTest`, `CaseAnalysisServiceTest`, `HealthControllerTest`, `CaseControllerTest`, and `AnalysisControllerTest` with **0 failures, 0 errors**.
+
+### Run Frontend Production Build & Lint
+```bash
+cd frontend
+npm run build
+npm run lint
+```
+
+---
+
+## 15. Limitations
+- Operates on a curated educational dataset of 12 clinical guideline records.
+- Keyword and feature-based relevance scoring rather than high-dimensional embedding vectors.
+- Educational prototype; does not ingest electronic health records (EHR/FHIR).
+
+---
+
+## 16. Medical Disclaimer
+**Educational Research Prototype — This application does not provide a medical diagnosis or prescribe treatment. Its outputs may be incomplete or inaccurate and must not replace professional medical judgment. Do not use it to assess or manage a real patient's condition.**
+
+---
+
+## 17. Future Scope
+- Integration with external PubMed / NCBI E-Utilities APIs for live literature retrieval.
+- Vector embeddings and semantic search using vector extensions.
+- Multi-guideline comparative conflict detection.
 - PDF upload and automated parsing for institutional clinical guidelines.
