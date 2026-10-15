@@ -102,7 +102,40 @@ This simulator provides an end-to-end, source-grounded clinical research pipelin
 
 ---
 
-## 7. Frontend Setup
+## 7. Quick Start with Docker (Recommended)
+
+Run the entire application stack (MySQL 8.0, Spring Boot Java 21 backend, and React/Nginx frontend) with a single command:
+
+```bash
+docker compose up --build
+```
+
+- **Frontend Application:** [http://localhost:5173](http://localhost:5173)
+- **Backend REST API:** [http://localhost:8080](http://localhost:8080)
+- **Backend Health Check:** [http://localhost:8080/api/health](http://localhost:8080/api/health)
+- **MySQL Database:** `localhost:3306` (Database: `medlit_ai`, User: `root`, Password: `root`)
+
+### Useful Docker Commands:
+```bash
+# Run in background (detached)
+docker compose up -d --build
+
+# View container logs
+docker compose logs -f
+
+# Check container status
+docker compose ps
+
+# Stop containers
+docker compose down
+
+# Stop containers and remove database volume
+docker compose down -v
+```
+
+---
+
+## 8. Frontend Setup (Local / Non-Docker)
 
 ### Prerequisites
 - Node.js v20+ and npm
@@ -123,7 +156,7 @@ npm run lint    # Oxlint code quality verification
 
 ---
 
-## 8. Backend Setup
+## 9. Backend Setup (Local / Non-Docker)
 
 ### Prerequisites
 - Java 21 LTS (OpenJDK / Temurin)
@@ -139,7 +172,7 @@ The backend initializes the database schema, seeds 12 curated guideline records,
 
 ---
 
-## 9. MySQL Setup
+## 10. MySQL Setup (Local / Non-Docker)
 
 Ensure MySQL is running on `localhost:3306`:
 ```sql
@@ -154,7 +187,7 @@ Spring Boot auto-creates the tables on first startup via Hibernate (`spring.jpa.
 
 ---
 
-## 10. Environment Configuration
+## 11. Environment Configuration
 
 Copy `.env.example` to configure custom database credentials or external AI keys:
 ```properties
@@ -177,7 +210,7 @@ VITE_API_BASE_URL=http://localhost:8080/api
 
 ---
 
-## 11. REST API Endpoints
+## 12. REST API Endpoints
 
 | Method | Endpoint | Description |
 |---|---|---|
@@ -195,7 +228,7 @@ VITE_API_BASE_URL=http://localhost:8080/api
 
 ---
 
-## 12. Demo Mode
+## 13. Demo Mode
 The simulator runs out-of-the-box in **Demo Mode** (`DEMO_MODE=true`):
 - Uses deterministic evidence synthesis grounded on retrieved MySQL records.
 - Provides 3 pre-configured synthetic demo scenarios:
@@ -206,7 +239,7 @@ The simulator runs out-of-the-box in **Demo Mode** (`DEMO_MODE=true`):
 
 ---
 
-## 13. Literature Retrieval & RAG Implementation
+## 14. Literature Retrieval & RAG Implementation
 - **Feature Extraction**: `ClinicalFeatureExtractor` normalizes clinical text and matches symptom clusters.
 - **Relevance Scoring**: `LiteratureServiceImpl` calculates relevance scores based on feature matches, topic relevance, and keyword occurrences (calibrated between 50% and 96%).
 - **Evidence Context**: `RagServiceImpl` builds structured prompt context containing top-ranked records with full citations and abstracts.
@@ -214,7 +247,7 @@ The simulator runs out-of-the-box in **Demo Mode** (`DEMO_MODE=true`):
 
 ---
 
-## 14. Testing Instructions
+## 15. Testing Instructions
 
 ### Run Backend Unit & Integration Tests
 ```bash
@@ -232,19 +265,19 @@ npm run lint
 
 ---
 
-## 15. Limitations
+## 16. Limitations
 - Operates on a curated educational dataset of 12 clinical guideline records.
 - Keyword and feature-based relevance scoring rather than high-dimensional embedding vectors.
 - Educational prototype; does not ingest electronic health records (EHR/FHIR).
 
 ---
 
-## 16. Medical Disclaimer
+## 17. Medical Disclaimer
 **Educational Research Prototype — This application does not provide a medical diagnosis or prescribe treatment. Its outputs may be incomplete or inaccurate and must not replace professional medical judgment. Do not use it to assess or manage a real patient's condition.**
 
 ---
 
-## 17. Future Scope
+## 18. Future Scope
 - Integration with external PubMed / NCBI E-Utilities APIs for live literature retrieval.
 - Vector embeddings and semantic search using vector extensions.
 - Multi-guideline comparative conflict detection.
