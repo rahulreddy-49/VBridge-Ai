@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: medlit-backend
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: DEMO_MODE
+        value: "true"
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:h2:mem:medlit_ai;DB_CLOSE_DELAY=-1;MODE=MySQL
+      - key: SPRING_DATASOURCE_USERNAME
+        value: sa
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: ""
